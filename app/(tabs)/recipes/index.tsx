@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function RecipesScreen() {
     const [searchQuery, setSearchQuery] = useState('');
     const { recipes, loading, error } = useRecipes(searchQuery);
+    console.log(error)
     const router = useRouter();
 
     const handleRecipePress = (id: string) => {

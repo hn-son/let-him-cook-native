@@ -4,7 +4,7 @@ import { List } from 'react-native-paper';
 interface Ingredient {
     id: string;
     name: string;
-    amount: number;
+    quantity: string;
     unit: string;
 }
 
@@ -15,11 +15,11 @@ interface IngredientsListProps {
 export default function IngredientsList({ ingredients }: IngredientsListProps) {
     return (
         <View style={styles.container}>
-            {ingredients.map(ingredient => (
+            {ingredients?.map(ingredient => (
                 <List.Item
                     key={ingredient.id}
                     title={ingredient.name}
-                    description={`${ingredient.amount} ${ingredient.unit}`}
+                    description={`${ingredient.quantity} ${ingredient.unit}`}
                     left={props => <List.Icon {...props} icon="food-variant" />}
                     style={styles.item}
                 />

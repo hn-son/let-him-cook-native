@@ -1,8 +1,8 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { Button, IconButton, Text, TextInput, Title } from 'react-native-paper';
+import { Button, IconButton, Snackbar, Text, TextInput } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
@@ -12,12 +12,39 @@ export default function LoginScreen() {
     const router = useRouter();
     const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
 
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarType, setSnackbarType] = useState<'success' | 'error'>('success');
+
+    useEffect(() => {
+        if (error) {
+            setSnackbarMessage('Đăng nhập thất bại');
+            setSnackbarType('error');
+            setSnackbarVisible(true);
+        }
+    }, [error]);
+
     const handleLogin = async () => {
-        await login(email, password);
-        if (returnTo) {
-            router.replace(returnTo as any);
-        } else {
-            router.replace('/(tabs)/recipes' as any);
+        try {
+            const res = await login(email, password);
+            console.log('Login log: ', res);
+            if (res.data) {
+                setSnackbarMessage('Đăng nhập thành công!');
+                setSnackbarType('success');
+                setSnackbarVisible(true);
+
+                setTimeout(() => {
+                    if (returnTo) {
+                        router.replace(returnTo as any);
+                    } else {
+                        router.replace('/(tabs)/recipes' as any);
+                    }
+                }, 1000);
+            } else {
+                throw new Error('Đăng nhập thất bại');
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -32,6 +59,10 @@ export default function LoginScreen() {
         router.back();
     };
 
+    const onDismissSnackbar = () => {
+        setSnackbarVisible(false);
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -43,9 +74,9 @@ export default function LoginScreen() {
                 style={styles.keyboardAvoid}
             >
                 <View style={styles.content}>
-                    <Title style={styles.title}>Đăng nhập</Title>
-
-                    {error && <Text style={styles.error}>{error}</Text>}
+                    <Text variant="titleLarge" style={styles.title}>
+                        Đăng nhập
+                    </Text>
 
                     <TextInput
                         label="Email"
@@ -82,6 +113,17 @@ export default function LoginScreen() {
                     </View>
                 </View>
             </KeyboardAvoidingView>
+            <Snackbar
+                visible={snackbarVisible}
+                onDismiss={onDismissSnackbar}
+                duration={3000}
+                style={[
+                    styles.snackbar,
+                    snackbarType === 'success' ? styles.successSnackbar : styles.errorSnackbar,
+                ]}
+            >
+                {snackbarMessage}
+            </Snackbar>
         </SafeAreaView>
     );
 }
@@ -126,5 +168,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 16,
+    },
+    snackbar: {
+        margin: 16,
+    },
+    successSnackbar: {
+        backgroundColor: '#4CAF50',
+    },
+    errorSnackbar: {
+        backgroundColor: '#F44336',
     },
 });

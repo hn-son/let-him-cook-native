@@ -1,6 +1,5 @@
-import CommentSection from '@/components/recipes/CommentSection';
 import IngredientsList from '@/components/recipes/IngredientsList';
-import StepsList from '@/components/recipes/StepsList';
+import { DIFFICULTY } from '@/constants/Difficulty';
 import { useRecipeDetails } from '@/hooks/useRecipes';
 import { useAuthStore } from '@/store/authStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -13,7 +12,6 @@ export default function RecipeDetailScreen() {
     const { recipe, loading, error } = useRecipeDetails(id);
     const { isAuthenticated } = useAuthStore();
     const router = useRouter();
-
     const handleCommentPress = () => {
         if (!isAuthenticated) {
             router.push(`/auth/login?returnTo=/recipes/${id}` as any);
@@ -44,17 +42,17 @@ export default function RecipeDetailScreen() {
             <Image source={{ uri: recipe.imageUrl }} style={styles.image} />
 
             <View style={styles.content}>
-                <Title style={styles.title}>{recipe.name}</Title>
+                <Title style={styles.title}>{recipe.title}</Title>
                 <Text style={styles.description}>{recipe.description}</Text>
 
                 <View style={styles.metaContainer}>
                     <View style={styles.metaItem}>
                         <Text style={styles.metaLabel}>Thời gian</Text>
-                        <Text style={styles.metaValue}>{recipe.cookTime} phút</Text>
+                        <Text style={styles.metaValue}>{recipe.cookingTime} phút</Text>
                     </View>
                     <View style={styles.metaItem}>
                         <Text style={styles.metaLabel}>Độ khó</Text>
-                        <Text style={styles.metaValue}>{recipe.difficulty}</Text>
+                        <Text style={styles.metaValue}>{DIFFICULTY[recipe.difficulty as keyof typeof DIFFICULTY]}</Text>
                     </View>
                 </View>
 
@@ -66,22 +64,21 @@ export default function RecipeDetailScreen() {
                 <Divider style={styles.divider} />
 
                 <Title style={styles.sectionTitle}>Các bước thực hiện</Title>
-                <StepsList steps={recipe.steps} />
+                {/* <StepsList steps={recipe.steps} /> */}
 
                 <Divider style={styles.divider} />
 
                 <Title style={styles.sectionTitle}>Bình luận</Title>
-                <CommentSection
+                {/* <CommentSection
                     comments={recipe.comments}
                     recipeId={id}
                     isAuthenticated={isAuthenticated}
                     onCommentPress={handleCommentPress}
-                />
+                /> */}
             </View>
         </ScrollView>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,

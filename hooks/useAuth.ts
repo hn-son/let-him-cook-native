@@ -28,10 +28,9 @@ export function useAuth() {
     });
 
     const login = (email: string, password: string) => {
-        loginMutation({
+        return loginMutation({
             variables: {
-                email,
-                password,
+                input: { email, password },
             },
         });
     };
@@ -52,5 +51,5 @@ export function useAuth() {
         logout: storeLogout,
         loading: loginLoading || registerLoading,
         error,
-    }
+    };
 }

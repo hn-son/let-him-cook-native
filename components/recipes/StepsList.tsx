@@ -18,7 +18,7 @@ export default function StepsList({ steps }: StepsListProps) {
 
     return (
         <View style={styles.container}>
-            {sortedSteps.map(step => (
+            {sortedSteps?.map(step => (
                 <Card key={step.id} style={styles.card}>
                     <Card.Content>
                         <Text variant="titleLarge" style={styles.stepNumber}>
