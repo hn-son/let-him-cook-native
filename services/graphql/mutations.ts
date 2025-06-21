@@ -42,15 +42,17 @@ export const DELETE_RECIPE = gql`
 `;
 
 export const ADD_COMMENT = gql`
-    mutation AddComment($recipeId: ID!, $text: String!) {
-        addComment(recipeId: $recipeId, text: $text) {
+    mutation AddComment($recipeId: ID!, $content: String!) {
+        addComment(recipeId: $recipeId, content: $content) {
             id
-            text
-            createdAt
-            user {
+            content
+            author {
+                username
                 id
-                name
+                email
+                role
             }
+            createdAt
         }
     }
 `;

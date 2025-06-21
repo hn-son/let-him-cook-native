@@ -6,7 +6,7 @@ import { Button, IconButton, Text, TextInput, Title } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RegisterScreen() {
-    const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -22,7 +22,7 @@ export default function RegisterScreen() {
         }
 
         setPasswordError('');
-        await register(name, email, password);
+        await register(username, email, password);
 
         if (returnTo) {
             router.replace(returnTo as any);
@@ -59,9 +59,9 @@ export default function RegisterScreen() {
                     {passwordError && <Text style={styles.error}>{passwordError}</Text>}
 
                     <TextInput
-                        label="Họ tên"
-                        value={name}
-                        onChangeText={setName}
+                        label="Username"
+                        value={username}
+                        onChangeText={setUsername}
                         style={styles.input}
                     />
 
@@ -94,7 +94,7 @@ export default function RegisterScreen() {
                         mode="contained"
                         onPress={handleRegister}
                         loading={loading}
-                        disabled={loading || !name || !email || !password || !confirmPassword}
+                        disabled={loading || !username || !email || !password || !confirmPassword}
                         style={styles.button}
                     >
                         Đăng ký

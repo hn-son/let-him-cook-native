@@ -8,6 +8,7 @@ export function useComments(recipeId?: string) {
             id: recipeId,
         },
     });
+    console.log(data)
     return { data: data?.recipeComments || [], loading, error };
 }
 
@@ -18,6 +19,7 @@ export function useAddComment() {
     });
 
     const submitComment = async (recipeId: string, content: string) => {
+        console.log('Submitting comment:', { recipeId, content });
         try {
             const { data } = await addComment({
                 variables: {

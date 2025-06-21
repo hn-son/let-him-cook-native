@@ -53,6 +53,7 @@ export const GET_COMMENTS = gql`
             id
             content
             createdAt
+            updatedAt
             author {
                 id
                 username

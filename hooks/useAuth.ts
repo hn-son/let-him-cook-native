@@ -35,12 +35,13 @@ export function useAuth() {
         });
     };
 
-    const register = (name: string, email: string, password: string) => {
+    const register = (username: string, email: string, password: string) => {
         registerMutation({
             variables: {
-                name,
+                username,
                 email,
                 password,
+                role: 'user'
             },
         });
     };
