@@ -38,7 +38,7 @@ export default function ProfileScreen() {
                 <View style={styles.header}>
                     <Avatar.Text
                         size={80}
-                        label={user?.name?.substring(0, 2).toUpperCase() || 'U'}
+                        label={user?.username?.substring(0, 1).toUpperCase() || 'U'}
                     />
                     <Text variant='titleLarge' style={styles.name}>{user?.name}</Text>
                     <Text style={styles.email}>{user?.email}</Text>

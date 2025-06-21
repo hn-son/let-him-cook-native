@@ -2,17 +2,29 @@ import RecipeCard from '@/components/recipes/RecipeCard';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Searchbar, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RecipesScreen() {
     const [searchQuery, setSearchQuery] = useState('');
-    const { recipes, loading, error } = useRecipes(searchQuery);
+    const [refetching, setRefetching] = useState(false);
+    const { recipes, loading, error, refetch } = useRecipes(searchQuery);
     const router = useRouter();
 
     const handleRecipePress = (id: string) => {
         router.push(`/recipes/${id}` as any);
+    };
+
+    const handleRefetch = async () => {
+        setRefetching(true);
+        try {
+            await refetch();
+        } catch (error) {
+            console.error('Error refetching recipes:', error);
+        } finally {
+            setRefetching(false);
+        }
     };
 
     return (
@@ -44,6 +56,13 @@ export default function RecipesScreen() {
                     )}
                     keyExtractor={item => item.id}
                     contentContainerStyle={styles.list}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refetching}
+                            onRefresh={handleRefetch}
+                            colors={['#6200ee']}
+                        />
+                    }
                 />
             )}
         </SafeAreaView>
