@@ -8,7 +8,7 @@ export function useComments(recipeId?: string) {
             id: recipeId,
         },
     });
-    return { data, loading, error };
+    return { data: data?.recipeComments || [], loading, error };
 }
 
 export function useAddComment() {

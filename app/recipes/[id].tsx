@@ -1,11 +1,12 @@
+import CommentSection from '@/components/recipes/CommentSection';
 import IngredientsList from '@/components/recipes/IngredientsList';
+import StepsList from '@/components/recipes/StepsList';
 import { DIFFICULTY } from '@/constants/Difficulty';
 import { useRecipeDetails } from '@/hooks/useRecipes';
 import { useAuthStore } from '@/store/authStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Divider, Text, Title } from 'react-native-paper';
-
 
 export default function RecipeDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,7 +53,9 @@ export default function RecipeDetailScreen() {
                     </View>
                     <View style={styles.metaItem}>
                         <Text style={styles.metaLabel}>Độ khó</Text>
-                        <Text style={styles.metaValue}>{DIFFICULTY[recipe.difficulty as keyof typeof DIFFICULTY]}</Text>
+                        <Text style={styles.metaValue}>
+                            {DIFFICULTY[recipe.difficulty as keyof typeof DIFFICULTY]}
+                        </Text>
                     </View>
                 </View>
 
@@ -64,17 +67,16 @@ export default function RecipeDetailScreen() {
                 <Divider style={styles.divider} />
 
                 <Title style={styles.sectionTitle}>Các bước thực hiện</Title>
-                {/* <StepsList steps={recipe.steps} /> */}
+                <StepsList steps={recipe.steps} />
 
                 <Divider style={styles.divider} />
 
                 <Title style={styles.sectionTitle}>Bình luận</Title>
-                {/* <CommentSection
-                    comments={recipe.comments}
+                <CommentSection
                     recipeId={id}
                     isAuthenticated={isAuthenticated}
                     onCommentPress={handleCommentPress}
-                /> */}
+                />
             </View>
         </ScrollView>
     );

@@ -1,4 +1,5 @@
-import { useAddComment } from "@/hooks/useComments";
+import { useAddComment, useComments } from "@/hooks/useComments";
+import { formatDate } from "@/utils";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Card, Text, TextInput } from "react-native-paper";
@@ -14,20 +15,20 @@ interface Comment {
 }
 
 interface CommentSectionProps {
-  comments: Comment[];
   recipeId: string;
   isAuthenticated: boolean;
   onCommentPress: () => void;
 }
 
-export default function CommentSection({ 
-  comments, 
+export default function CommentSection({
   recipeId, 
   isAuthenticated,
   onCommentPress 
 }: CommentSectionProps) {
   const [commentText, setCommentText] = useState("");
   const { submitComment, loading } = useAddComment();
+  const {data: comments, loading: commentLoading, error: commentError} = useComments(recipeId);
+  console.log("Comments data: ", comments);
 
   const handleAddComment = async () => {
     if (commentText.trim()) {
@@ -38,13 +39,13 @@ export default function CommentSection({
 
   return (
     <View style={styles.container}>
-      {comments.map((comment) => (
+      {comments?.map((comment) => (
         <Card key={comment.id} style={styles.commentCard}>
           <Card.Content>
-            <Text variant="titleMedium">{comment.user.name}</Text>
-            <Text variant="bodyMedium">{comment.text}</Text>
+            <Text variant="titleMedium" style={styles.authorName}>{comment.author.username}</Text>
+            <Text variant="bodyMedium">{comment.content}</Text>
             <Text variant="bodySmall" style={styles.date}>
-              {new Date(comment.createdAt).toLocaleDateString()}
+              {formatDate(comment.createdAt)}
             </Text>
           </Card.Content>
         </Card>
@@ -95,4 +96,8 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "transparent",
   },
+  authorName: {
+    fontWeight: "bold",
+    marginBottom: 4,
+  }
 });

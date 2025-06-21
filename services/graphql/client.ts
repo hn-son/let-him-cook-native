@@ -5,7 +5,8 @@ import { onError } from '@apollo/client/link/error';
 
 const httpLink = createHttpLink({
     // uri: 'http://localhost:4000/graphql', 
-    uri: 'http://192.168.54.164:4000/graphql', 
+    uri: 'http://192.168.210.1:4000/graphql', 
+    credentials: 'include',
 });
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
@@ -31,6 +32,7 @@ const authLink = setContext((_, { headers }) => {
 
 export const client = new ApolloClient({
     link: from([authLink.concat(httpLink), errorLink]),
+    // link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
     connectToDevTools: true,
     defaultOptions: {

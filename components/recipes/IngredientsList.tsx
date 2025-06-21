@@ -17,7 +17,7 @@ export default function IngredientsList({ ingredients }: IngredientsListProps) {
         <View style={styles.container}>
             {ingredients?.map(ingredient => (
                 <List.Item
-                    key={ingredient.id}
+                    key={ingredient.name}
                     title={ingredient.name}
                     description={`${ingredient.quantity} ${ingredient.unit}`}
                     left={props => <List.Icon {...props} icon="food-variant" />}

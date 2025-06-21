@@ -1,4 +1,4 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 
 interface Step {
@@ -14,20 +14,17 @@ interface StepsListProps {
 
 export default function StepsList({ steps }: StepsListProps) {
     // Sort steps by order
-    const sortedSteps = [...steps].sort((a, b) => a.order - b.order);
+    // const sortedSteps = [...steps].sort((a, b) => a.order - b.order);
 
     return (
         <View style={styles.container}>
-            {sortedSteps?.map(step => (
+            {steps?.map((step, idx) => (
                 <Card key={step.id} style={styles.card}>
                     <Card.Content>
                         <Text variant="titleLarge" style={styles.stepNumber}>
-                            Bước {step.order}
+                            Bước {idx + 1}:
                         </Text>
-                        <Text style={styles.description}>{step.description}</Text>
-                        {step.imageUrl && (
-                            <Image source={{ uri: step.imageUrl }} style={styles.image} />
-                        )}
+                        <Text style={styles.description}>{step}</Text>
                     </Card.Content>
                 </Card>
             ))}
