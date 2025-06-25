@@ -1,3 +1,4 @@
+import KeyboardAvoidingWrapper from '@/components/hoc/KeyboardAvoidingWrapper';
 import { Colors } from '@/constants/Color';
 import { client } from '@/services/graphql/client';
 import { ApolloProvider } from '@apollo/client';
@@ -21,11 +22,13 @@ export default function RootLayout() {
         <ApolloProvider client={client}>
             <PaperProvider theme={theme}>
                 <SafeAreaProvider>
-                    <Stack
-                        screenOptions={{
-                            headerShown: false,
-                        }}
-                    />
+                    <KeyboardAvoidingWrapper>
+                        <Stack
+                            screenOptions={{
+                                headerShown: false,
+                            }}
+                        />
+                    </KeyboardAvoidingWrapper>
                 </SafeAreaProvider>
             </PaperProvider>
         </ApolloProvider>
