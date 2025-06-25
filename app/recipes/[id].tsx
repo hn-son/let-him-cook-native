@@ -11,7 +11,7 @@ import { ActivityIndicator, Button, Divider, Text, Title } from 'react-native-pa
 export default function RecipeDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const { recipe, loading, error } = useRecipeDetails(id);
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, user } = useAuthStore();
     const router = useRouter();
     const handleCommentPress = () => {
         if (!isAuthenticated) {
@@ -76,6 +76,7 @@ export default function RecipeDetailScreen() {
                     recipeId={id}
                     isAuthenticated={isAuthenticated}
                     onCommentPress={handleCommentPress}
+                    currentUSerId={user?.id}
                 />
             </View>
         </ScrollView>

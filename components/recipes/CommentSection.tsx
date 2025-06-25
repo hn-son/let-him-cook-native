@@ -1,17 +1,17 @@
-import { useAddComment, useComments } from '@/hooks/useComments';
+import { useAddComment, useComments, useUpdateComment } from '@/hooks/useComments';
 import { formatDate } from '@/utils';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Avatar, Button, Card, Text, TextInput } from 'react-native-paper';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Avatar, Button, Card, IconButton, Menu, Text, TextInput } from 'react-native-paper';
 
 interface Comment {
     id: string;
-    text: string;
+    content: string;
     createdAt: string;
     updatedAt?: string;
-    user: {
+    author: {
         id: string;
-        name: string;
+        username: string;
     };
 }
 
@@ -19,16 +19,27 @@ interface CommentSectionProps {
     recipeId: string;
     isAuthenticated: boolean;
     onCommentPress: () => void;
+    currentUSerId?: string;
 }
 
 export default function CommentSection({
     recipeId,
     isAuthenticated,
     onCommentPress,
+    currentUSerId,
 }: CommentSectionProps) {
     const [commentText, setCommentText] = useState('');
     const { submitComment, loading } = useAddComment();
     const { data: comments, loading: commentLoading, error: commentError } = useComments(recipeId);
+    console.log('Comments data: ', comments);
+    const {
+        submitComment: updateComment,
+        loading: updateLoading,
+        error: updateError,
+    } = useUpdateComment();
+    const [menuVisible, setMenuVisible] = useState<string | null>(null);
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editingText, setEditingText] = useState('');
     console.log('Comments data: ', comments);
 
     const handleAddComment = async () => {
@@ -58,9 +69,44 @@ export default function CommentSection({
         return username.charAt(0).toUpperCase();
     };
 
+    const handleEditComment = (comment: Comment) => {
+        setEditingCommentId(comment.id);
+        setEditingText(comment.content);
+        setMenuVisible(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingCommentId(null);
+        setEditingText('');
+    };
+
+    const handleUpdateComment = async (commentId: string) => {
+        if (editingText.trim()) {
+            await updateComment(commentId, editingText);
+            setEditingCommentId(null);
+            setEditingText('');
+        }
+    };
+
+    const handleDeleteComment = (commentId: string) => {
+        Alert.alert('Xóa bình luận', 'Bạn có chắc chắn muốn xóa bình luận này?', [
+            { text: 'Hủy', style: 'cancel' },
+            { text: 'Xóa', style: 'destructive', onPress: async () => {} },
+        ]);
+    };
+
+    const handleLongPress = (comment: Comment) => {
+        if (currentUSerId === comment.author.id) {
+            setMenuVisible(comment.id);
+        }
+    };
+
+    const isOwnComment = (comment: Comment) => {
+        return comment.author.id === currentUSerId;
+    };
+
     return (
         <View style={styles.container}>
-            {/* Phần gửi bình luận - Di chuyển lên trên */}
             {isAuthenticated ? (
                 <View style={styles.inputContainer}>
                     <TextInput
@@ -84,31 +130,100 @@ export default function CommentSection({
                     Đăng nhập để bình luận
                 </Button>
             )}
-
-            {/* Danh sách bình luận */}
-            {comments?.map(comment => (
-                <Card key={comment.id} style={styles.commentCard}>
-                    <Card.Content>
-                        <View style={styles.commentHeader}>
-                            <Avatar.Text
-                                size={32}
-                                label={getAvatarLabel(comment.author.username)}
-                                style={styles.avatar}
-                            />
-                            <View style={styles.authorInfo}>
-                                <Text variant="titleMedium" style={styles.authorName}>
-                                    {comment.author.username}
-                                </Text>
-                                <Text variant="bodySmall" style={styles.date}>
-                                    {getDateDisplay(comment)}
-                                </Text>
+            {comments?.map((comment: any) => (
+                <Pressable
+                    key={comment.id}
+                    onLongPress={() => handleLongPress(comment)}
+                    delayLongPress={500}
+                >
+                    <Card
+                        style={[styles.commentCard, isOwnComment(comment) && styles.ownCommentCard]}
+                    >
+                        <Card.Content>
+                            <View style={styles.commentHeader}>
+                                <Avatar.Text
+                                    size={32}
+                                    label={getAvatarLabel(comment.author.username)}
+                                    style={[
+                                        styles.avatar,
+                                        isOwnComment(comment) && styles.ownAvatar,
+                                    ]}
+                                />
+                                <View style={styles.authorInfo}>
+                                    <View style={styles.authorRow}>
+                                        <Text
+                                            variant="titleMedium"
+                                            style={[
+                                                styles.authorName,
+                                                isOwnComment(comment) && styles.ownAuthorName,
+                                            ]}
+                                        >
+                                            {comment.author.username}
+                                            {isOwnComment(comment) && (
+                                                <Text style={styles.youLabel}> (bạn)</Text>
+                                            )}
+                                        </Text>
+                                        {isOwnComment(comment) && (
+                                            <Menu
+                                                visible={menuVisible === comment.id}
+                                                onDismiss={() => setMenuVisible(null)}
+                                                anchor={
+                                                    <IconButton
+                                                        icon="dots-vertical"
+                                                        size={12}
+                                                        onPress={() => setMenuVisible(comment.id)}
+                                                    />
+                                                }
+                                            >
+                                                <Menu.Item
+                                                    onPress={() => handleEditComment(comment)}
+                                                    title="Chỉnh sửa"
+                                                    leadingIcon="pencil"
+                                                />
+                                                <Menu.Item
+                                                    onPress={() => handleDeleteComment(comment.id)}
+                                                    title="Xóa"
+                                                    leadingIcon="delete"
+                                                />
+                                            </Menu>
+                                        )}
+                                    </View>
+                                    <Text variant="bodySmall" style={styles.date}>
+                                        {getDateDisplay(comment)}
+                                    </Text>
+                                </View>
                             </View>
-                        </View>
-                        <Text variant="bodyMedium" style={styles.commentContent}>
-                            {comment.content}
-                        </Text>
-                    </Card.Content>
-                </Card>
+                            {editingCommentId === comment.id ? (
+                                <View style={styles.editContainer}>
+                                    <TextInput
+                                        value={editingText}
+                                        onChangeText={setEditingText}
+                                        multiline
+                                        style={styles.editInput}
+                                    />
+                                    <View style={styles.editButtons}>
+                                        <Button mode="outlined" onPress={handleCancelEdit}>
+                                            Hủy
+                                        </Button>
+                                        <Button
+                                            mode="contained"
+                                            onPress={() => handleUpdateComment(comment.id)}
+                                            loading={updateLoading}
+                                            disabled={loading || !editingText.trim()}
+                                            style={styles.editButton}
+                                        >
+                                            Lưu
+                                        </Button>
+                                    </View>
+                                </View>
+                            ) : (
+                                <Text variant="bodyMedium" style={styles.commentContent}>
+                                    {comment.content}
+                                </Text>
+                            )}
+                        </Card.Content>
+                    </Card>
+                </Pressable>
             ))}
         </View>
     );
@@ -145,11 +260,48 @@ const styles = StyleSheet.create({
     authorName: {
         fontWeight: 'bold',
         marginBottom: 2,
+        flex: 1,
     },
     date: {
         opacity: 0.6,
     },
     commentContent: {
-        marginLeft: 44, // Căn chỉnh với text bên trên (32px avatar + 12px margin)
+        marginLeft: 44,
+    },
+    ownCommentCard: {
+        backgroundColor: '#e3f2fd',
+        borderLeftWidth: 3,
+        borderLeftColor: '#2196f3',
+    },
+    ownAvatar: {
+        backgroundColor: '#2196f3',
+    },
+    editContainer: {
+        marginLeft: 44,
+        gap: 8,
+    },
+    editInput: {
+        backgroundColor: 'transparent',
+    },
+    editButtons: {
+        flexDirection: 'row',
+        gap: 8,
+        justifyContent: 'flex-end',
+    },
+    editButton: {
+        minWidth: 80,
+    },
+    authorRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    ownAuthorName: {
+        color: '#1976d2',
+    },
+    youLabel: {
+        fontWeight: 'normal',
+        fontSize: 12,
+        color: '#666',
     },
 });

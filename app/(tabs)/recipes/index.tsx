@@ -10,6 +10,7 @@ export default function RecipesScreen() {
     const [searchQuery, setSearchQuery] = useState('');
     const [refetching, setRefetching] = useState(false);
     const { recipes, loading, error, refetch } = useRecipes(searchQuery);
+    console.log('Recipes error: ', error);
     const router = useRouter();
 
     const handleRecipePress = (id: string) => {

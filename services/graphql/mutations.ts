@@ -57,6 +57,23 @@ export const ADD_COMMENT = gql`
     }
 `;
 
+export const UPDATE_COMMENT = gql`
+    mutation UpdateComment($id: ID!, $content: String!) {
+        updateComment(id: $id, content: $content) {
+            id
+            content
+            author {
+                username
+                id
+                email
+                role
+            }
+            createdAt
+            updatedAt
+        }
+    }
+`;
+
 export const LOGIN = gql`
     mutation Login($input: LoginInput!) {
         login(input: $input) {
@@ -90,6 +107,17 @@ export const LOGOUT = gql`
         logout {
             success
             message
+        }
+    }
+`;
+
+export const DELETE_COMMENT = gql`
+    mutation DeleteComment($id: ID!) {
+        deleteComment(id: $id) {
+            deletedId
+            success
+            message
+            deleteBy
         }
     }
 `;
