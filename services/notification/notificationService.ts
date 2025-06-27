@@ -1,17 +1,16 @@
-import { EventEmitter } from 'events';
-
-export interface NotificationData {
+interface NotificationData {
     message: string;
     type: 'success' | 'error' | 'info' | 'warning';
     duration?: number;
 }
 
-class NotificationService extends EventEmitter {
-    private static instance: NotificationService;
+type NotificationCallback = (data: NotificationData) => void;
 
-    private constructor() {
-        super();
-    }
+class NotificationService {
+    private static instance: NotificationService;
+    private listeners: NotificationCallback[] = [];
+
+    private constructor() {}
 
     public static getInstance(): NotificationService {
         if (!NotificationService.instance) {
@@ -20,8 +19,8 @@ class NotificationService extends EventEmitter {
         return NotificationService.instance;
     }
 
-    public showNotification(notification: NotificationData): void {
-        this.emit('notification', notification);
+    public showNotification(data: NotificationData) {
+        this.listeners.forEach(callback => callback(data));
     }
 
     public showSuccess(message: string, duration?: number) {
@@ -40,13 +39,18 @@ class NotificationService extends EventEmitter {
         this.showNotification({ message, type: 'warning', duration });
     }
 
-    public onNotification(callback: (data: NotificationData) => void) {
-        this.on('notification', callback);
+    public onNotification(callback: NotificationCallback) {
+        this.listeners.push(callback);
     }
 
-    public removeNotificationListener(callback: (data: NotificationData) => void) {
-        this.off('notification', callback);
+    public removeNotificationListener(callback: NotificationCallback) {
+        const index = this.listeners.indexOf(callback);
+        if (index > -1) {
+            this.listeners.splice(index, 1);
+        }
     }
 }
 
 export default NotificationService.getInstance();
+export type { NotificationData };
+
