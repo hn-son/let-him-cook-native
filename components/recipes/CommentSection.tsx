@@ -1,4 +1,9 @@
-import { useAddComment, useComments, useUpdateComment } from '@/hooks/useComments';
+import {
+    useAddComment,
+    useComments,
+    useDeleteComment,
+    useUpdateComment,
+} from '@/hooks/useComments';
 import { formatDate } from '@/utils';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
@@ -37,9 +42,12 @@ export default function CommentSection({
         loading: updateLoading,
         error: updateError,
     } = useUpdateComment();
+
+    const { submitDelete, loading: deleteLoading, error: deleteError } = useDeleteComment();
     const [menuVisible, setMenuVisible] = useState<string | null>(null);
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editingText, setEditingText] = useState('');
+    const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
     console.log('Comments data: ', comments);
 
     const handleAddComment = async () => {
@@ -91,7 +99,20 @@ export default function CommentSection({
     const handleDeleteComment = (commentId: string) => {
         Alert.alert('Xóa bình luận', 'Bạn có chắc chắn muốn xóa bình luận này?', [
             { text: 'Hủy', style: 'cancel' },
-            { text: 'Xóa', style: 'destructive', onPress: async () => {} },
+            {
+                text: 'Xóa',
+                style: 'destructive',
+                onPress: async () => {
+                    console.log('Deleting comment: ', commentId);
+                    setDeletingCommentId(commentId);
+                    setMenuVisible(null);
+                    try {
+                        await submitDelete(commentId);
+                    } finally {
+                        setDeletingCommentId(null);
+                    }
+                },
+            },
         ]);
     };
 
@@ -103,6 +124,10 @@ export default function CommentSection({
 
     const isOwnComment = (comment: Comment) => {
         return comment.author.id === currentUSerId;
+    };
+
+    const isCommentDeleting = (commentId: string) => {
+        return deletingCommentId === commentId;
     };
 
     return (
@@ -135,12 +160,27 @@ export default function CommentSection({
                     key={comment.id}
                     onLongPress={() => handleLongPress(comment)}
                     delayLongPress={500}
+                    disabled={isCommentDeleting(comment.id)}
                 >
                     <Card
-                        style={[styles.commentCard, isOwnComment(comment) && styles.ownCommentCard]}
+                        style={[
+                            styles.commentCard,
+                            isOwnComment(comment) && styles.ownCommentCard,
+                            isCommentDeleting(comment.id) && styles.deletingCommentCard,
+                        ]}
                     >
                         <Card.Content>
-                            <View style={styles.commentHeader}>
+                            {isCommentDeleting(comment.id) && (
+                                <View style={[styles.deletingOverlay]}>
+                                    <Text style={styles.deletingText}>Đang xóa...</Text>
+                                </View>
+                            )}
+                            <View
+                                style={[
+                                    styles.commentHeader,
+                                    isCommentDeleting(comment.id) && styles.deletingContent,
+                                ]}
+                            >
                                 <Avatar.Text
                                     size={32}
                                     label={getAvatarLabel(comment.author.username)}
@@ -163,30 +203,35 @@ export default function CommentSection({
                                                 <Text style={styles.youLabel}> (bạn)</Text>
                                             )}
                                         </Text>
-                                        {isOwnComment(comment) && (
-                                            <Menu
-                                                visible={menuVisible === comment.id}
-                                                onDismiss={() => setMenuVisible(null)}
-                                                anchor={
-                                                    <IconButton
-                                                        icon="dots-vertical"
-                                                        size={12}
-                                                        onPress={() => setMenuVisible(comment.id)}
+                                        {isOwnComment(comment) &&
+                                            !isCommentDeleting(comment.id) && (
+                                                <Menu
+                                                    visible={menuVisible === comment.id}
+                                                    onDismiss={() => setMenuVisible(null)}
+                                                    anchor={
+                                                        <IconButton
+                                                            icon="dots-vertical"
+                                                            size={12}
+                                                            onPress={() =>
+                                                                setMenuVisible(comment.id)
+                                                            }
+                                                        />
+                                                    }
+                                                >
+                                                    <Menu.Item
+                                                        onPress={() => handleEditComment(comment)}
+                                                        title="Chỉnh sửa"
+                                                        leadingIcon="pencil"
                                                     />
-                                                }
-                                            >
-                                                <Menu.Item
-                                                    onPress={() => handleEditComment(comment)}
-                                                    title="Chỉnh sửa"
-                                                    leadingIcon="pencil"
-                                                />
-                                                <Menu.Item
-                                                    onPress={() => handleDeleteComment(comment.id)}
-                                                    title="Xóa"
-                                                    leadingIcon="delete"
-                                                />
-                                            </Menu>
-                                        )}
+                                                    <Menu.Item
+                                                        onPress={() =>
+                                                            handleDeleteComment(comment.id)
+                                                        }
+                                                        title="Xóa"
+                                                        leadingIcon="delete"
+                                                    />
+                                                </Menu>
+                                            )}
                                     </View>
                                     <Text variant="bodySmall" style={styles.date}>
                                         {getDateDisplay(comment)}
@@ -217,7 +262,13 @@ export default function CommentSection({
                                     </View>
                                 </View>
                             ) : (
-                                <Text variant="bodyMedium" style={styles.commentContent}>
+                                <Text
+                                    variant="bodyMedium"
+                                    style={[
+                                        styles.commentContent,
+                                        isCommentDeleting(comment.id) && styles.deletingContent,
+                                    ]}
+                                >
                                     {comment.content}
                                 </Text>
                             )}
@@ -245,6 +296,7 @@ const styles = StyleSheet.create({
     },
     commentCard: {
         marginBottom: 8,
+        position: 'relative',
     },
     commentHeader: {
         flexDirection: 'row',
@@ -303,5 +355,28 @@ const styles = StyleSheet.create({
         fontWeight: 'normal',
         fontSize: 12,
         color: '#666',
+    },
+    deletingCommentCard: {
+        opacity: 0.6,
+        backgroundColor: '#ffebee',
+    },
+    deletingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
+        borderRadius: 8,
+    },
+    deletingText: {
+        color: '#d32f2f',
+        fontWeight: 'bold',
+    },
+    deletingContent: {
+        opacity: 0.5,
     },
 });

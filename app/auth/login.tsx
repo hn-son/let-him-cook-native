@@ -1,8 +1,9 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useNotification } from '@/hooks/useNotification';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { Button, IconButton, Snackbar, Text, TextInput } from 'react-native-paper';
+import { Button, IconButton, Text, TextInput } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
@@ -12,26 +13,20 @@ export default function LoginScreen() {
     const router = useRouter();
     const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
 
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [snackbarType, setSnackbarType] = useState<'success' | 'error'>('success');
+    const { showSuccess, showError } = useNotification();
 
     useEffect(() => {
         if (error) {
-            setSnackbarMessage('Đăng nhập thất bại');
-            setSnackbarType('error');
-            setSnackbarVisible(true);
+            showError('Đăng nhập thất bại');
         }
-    }, [error]);
+    }, [error, showError]);
 
     const handleLogin = async () => {
         try {
             const res = await login(email, password);
             console.log('Login log: ', res);
             if (res.data) {
-                setSnackbarMessage('Đăng nhập thành công!');
-                setSnackbarType('success');
-                setSnackbarVisible(true);
+                showSuccess('Đăng nhập thành công!');
 
                 setTimeout(() => {
                     if (returnTo) {
@@ -57,10 +52,6 @@ export default function LoginScreen() {
 
     const handleBack = () => {
         router.back();
-    };
-
-    const onDismissSnackbar = () => {
-        setSnackbarVisible(false);
     };
 
     return (
@@ -113,17 +104,6 @@ export default function LoginScreen() {
                     </View>
                 </View>
             </KeyboardAvoidingView>
-            <Snackbar
-                visible={snackbarVisible}
-                onDismiss={onDismissSnackbar}
-                duration={3000}
-                style={[
-                    styles.snackbar,
-                    snackbarType === 'success' ? styles.successSnackbar : styles.errorSnackbar,
-                ]}
-            >
-                {snackbarMessage}
-            </Snackbar>
         </SafeAreaView>
     );
 }

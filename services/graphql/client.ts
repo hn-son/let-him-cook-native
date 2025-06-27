@@ -6,7 +6,7 @@ import { onError } from '@apollo/client/link/error';
 const httpLink = createHttpLink({
     // uri: 'http://localhost:4000/graphql', 
     // uri: 'http://192.168.1.68:4000/graphql', 
-    uri: 'https://b188-118-70-99-228.ngrok-free.app/graphql', 
+    uri: 'https://feaa-183-80-8-170.ngrok-free.app/graphql', 
     credentials: 'include',
 });
 

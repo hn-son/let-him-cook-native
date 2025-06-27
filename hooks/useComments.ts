@@ -1,4 +1,4 @@
-import { ADD_COMMENT, UPDATE_COMMENT } from '@/services/graphql/mutations';
+import { ADD_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/services/graphql/mutations';
 import { GET_COMMENTS } from '@/services/graphql/queries';
 import { useMutation, useQuery } from '@apollo/client';
 
@@ -69,5 +69,32 @@ export function useUpdateComment() {
         submitComment,
         loading,
         error,
-    }
+    };
+}
+export function useDeleteComment() {
+    const [deleteComment, { loading, error }] = useMutation(DELETE_COMMENT, {
+        refetchQueries: [GET_COMMENTS],
+        awaitRefetchQueries: true,
+    });
+
+    const submitDelete = async (id: string) => {
+        try {
+            const { data } = await deleteComment({
+                variables: {
+                    id,
+                },
+            });
+
+            return data.updateComment;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    };
+
+    return {
+        submitDelete,
+        loading,
+        error,
+    };
 }
