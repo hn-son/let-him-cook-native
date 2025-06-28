@@ -3,7 +3,7 @@ import { useRecipes } from '@/hooks/useRecipes';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Searchbar, Text } from 'react-native-paper';
+import { ActivityIndicator, FAB, Searchbar, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RecipesScreen() {
@@ -15,6 +15,10 @@ export default function RecipesScreen() {
 
     const handleRecipePress = (id: string) => {
         router.push(`/recipes/${id}` as any);
+    };
+
+    const handleAddRecipe = () => {
+        router.push('/recipes/create' as any);
     };
 
     const handleRefetch = async () => {
@@ -66,6 +70,13 @@ export default function RecipesScreen() {
                     }
                 />
             )}
+            <FAB
+                icon="plus"
+                style={styles.fab}
+                onPress={handleAddRecipe}
+                label="Thêm công thức"
+                color='#fff'
+            />
         </SafeAreaView>
     );
 }
@@ -81,10 +92,22 @@ const styles = StyleSheet.create({
     },
     list: {
         padding: 16,
+        paddingBottom: 100,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
+        backgroundColor: '#6200ee',
+        color: '#fff',
+    },
+    labelFab: {
+        color: '#fff',
+    }
 });

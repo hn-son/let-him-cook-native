@@ -3,12 +3,6 @@ import { GET_COMMENTS } from '@/services/graphql/queries';
 import { useMutation, useQuery } from '@apollo/client';
 import { useNotification } from './useNotification';
 
-const commentNotification = (() => {
-    const { showSuccess, showError } = useNotification();
-    
-    return {showSuccess, showError}
-})();
-
 export function useComments(recipeId?: string) {
     const { data, loading, error } = useQuery(GET_COMMENTS, {
         variables: {
@@ -24,6 +18,7 @@ export function useAddComment() {
         refetchQueries: [GET_COMMENTS],
         awaitRefetchQueries: true,
     });
+    const { showSuccess, showError } = useNotification();
 
     const submitComment = async (recipeId: string, content: string) => {
         console.log('Submitting comment:', { recipeId, content });
@@ -34,11 +29,11 @@ export function useAddComment() {
                     content,
                 },
             });
-            commentNotification.showSuccess('Thêm bình luận thành công!');
+            showSuccess('Thêm bình luận thành công!');
             return data.addComment;
         } catch (error) {
             console.error(error);
-            commentNotification.showError('Thêm bình luận thất bại!');
+            showError('Thêm bình luận thất bại!');
             throw error;
         }
     };
@@ -51,7 +46,7 @@ export function useAddComment() {
 }
 
 export function useUpdateComment() {
-    const {showSuccess} = useNotification()
+    const { showSuccess, showError } = useNotification();
     const [updateComment, { loading, error }] = useMutation(UPDATE_COMMENT, {
         refetchQueries: [GET_COMMENTS],
         awaitRefetchQueries: true,
@@ -70,7 +65,7 @@ export function useUpdateComment() {
             return data.updateComment;
         } catch (error) {
             console.error(error);
-            commentNotification.showError('Cập nhật bình luận thất bại!');
+            showError('Cập nhật bình luận thất bại!');
             throw error;
         }
     };
@@ -82,7 +77,7 @@ export function useUpdateComment() {
     };
 }
 export function useDeleteComment() {
-    
+    const { showSuccess, showError } = useNotification();
     const [deleteComment, { loading, error }] = useMutation(DELETE_COMMENT, {
         refetchQueries: [GET_COMMENTS],
         awaitRefetchQueries: true,
@@ -95,11 +90,11 @@ export function useDeleteComment() {
                     id,
                 },
             });
-            commentNotification.showSuccess('Xóa bình luận thành công!');
-            return data.updateComment;
+            showSuccess('Xóa bình luận thành công!');
+            return data.deleteComment;
         } catch (error) {
             console.error(error);
-            commentNotification.showError('Xóa bình luận thất bại!');
+            showError('Xóa bình luận thất bại!');
             throw error;
         }
     };
