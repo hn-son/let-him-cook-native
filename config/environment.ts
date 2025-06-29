@@ -1,3 +1,8 @@
+import Constants from 'expo-constants';
+
+console.log('Constants.expoConfig', Constants.expoConfig);
+
 export const environment = {
-    graphqlUrl: 'http://localhost:4000/graphql',
+    graphqlUrl: Constants.expoConfig?.extra?.graphqlUrl,
+    firebaseConfig: Constants.expoConfig?.extra?.firebaseConfig,
 };
