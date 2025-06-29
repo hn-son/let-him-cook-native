@@ -1,9 +1,12 @@
+import { UploadProgress } from '@/components/UploadProgress';
 import { DIFFICULTY } from '@/constants/Difficulty';
+import { useFirebase } from '@/hooks/useFirebase';
 import { useNotification } from '@/hooks/useNotification';
 import { useAddRecipe, useRecipeDetails } from '@/hooks/useRecipes';
+import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import {
     ActivityIndicator,
     Button,
@@ -62,8 +65,8 @@ export default function CreateRecipeScreen() {
     const [newStep, setNewStep] = useState('');
     const [showStepForm, setShowStepForm] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-    const pickImage = () => {};
+    const {uploadImage, deleteImage, uploading, progress} = useFirebase()
+    const [imagePath, setImagePath] = useState('')
 
     const addIngredient = () => {
         if (newIngredient.name.trim() && newIngredient.quantity > 0 && newIngredient.unit.trim()) {
@@ -145,6 +148,37 @@ export default function CreateRecipeScreen() {
         }));
     };
 
+    const pickImage = async () => {
+        const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync()
+        if (status !== 'granted') {
+            showError('Bạn cần cấp quyền truy cập thư viện ảnh để chọn ảnh')
+            return
+        }
+
+        const pickerResult = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        })
+
+        if (!pickerResult.canceled) {
+            const uploadResult = await uploadImage(pickerResult.assets[0].uri)
+
+            if (uploadResult) {
+                console.log('image pick: ', uploadResult)
+                // if (imagePath) {
+                //     await deleteImage(imagePath)
+                // }
+
+                setImagePath(uploadResult)
+                setFormState(prev => ({...prev, imageUrl: uploadResult}))
+            }
+            
+        
+        }
+    }
+
     const handleSave = async () => {
         if (!validateForm()) {
             showError('Vui lòng kiểm tra lại thông tin');
@@ -163,7 +197,7 @@ export default function CreateRecipeScreen() {
                     unit: ingredient.unit,
                 })),
                 steps: formState.steps.map(step => step.content),
-                imageUrl: '',
+                imageUrl: formState.imageUrl,
             };
             await submitRecipe(recipeData);
         } catch (error) {
@@ -187,6 +221,7 @@ export default function CreateRecipeScreen() {
                 difficulty: recipe.difficulty,
                 imageUrl: recipe.imageUrl || '',
             });
+            setImagePath(recipe.imageUrl)
         }
     }, [isEditMode, recipe]);
 
@@ -198,6 +233,8 @@ export default function CreateRecipeScreen() {
             </View>
         );
     }
+
+
 
     return (
         <>
@@ -227,13 +264,18 @@ export default function CreateRecipeScreen() {
             <ScrollView style={styles.container}>
                 {/* Image Section */}
                 <View style={styles.imageContainer}>
-                    {/* {imageUri ? (
-                        <Image source={{ uri: imageUri }} style={styles.image} />
-                    ) : ( */}
+                    {formState.imageUrl ? (
+                        <Image source={{ uri: formState.imageUrl }} style={styles.image} />
+                    ) : (
                     <View style={styles.imagePlaceholder}>
                         <Text style={styles.imagePlaceholderText}>Chưa có ảnh</Text>
                     </View>
-                    {/* )} */}
+                    )}
+                    <UploadProgress 
+                        visible={uploading} 
+                        progress={progress}
+                        message="Đang tải ảnh lên..."
+                    />
                     <Button
                         mode="contained"
                         onPress={pickImage}

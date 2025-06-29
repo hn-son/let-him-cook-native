@@ -1,4 +1,4 @@
-import RecipeCard from '@/components/recipes/RecipeCard';
+import RecipeCard from '@/components/RecipeCard';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';

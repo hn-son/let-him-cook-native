@@ -8,39 +8,49 @@ export const useFirebase = () => {
 
     const { showSuccess, showError } = useNotification();
 
-    const uploadImage = async (file: File) => {
-        setUploading(true)
+    const uploadImage = async (uri: string, folder?: string): Promise<string | null> => {
+        setUploading(true);
         setProgress(0);
-        try 
-        {
-            const result = await FirebaseStorageService.uploadImageToFirebase(file);
-            showSuccess('Ảnh đã được tải lên thành công!');
-            return result;
+        try {
+            const validation = await FirebaseStorageService.validateImage(uri);
 
+            if (!validation.isValid) {
+                showError(validation.error || 'Ảnh không hợp lệ!');
+                return null;
+            }
+
+            const downloadURL = await FirebaseStorageService.uploadImageToFirebase(uri, folder);
+            setProgress(100);
+            showSuccess('Tải ảnh lên thành công!');
+
+            return downloadURL;
         } catch (error) {
             showError('Đã xảy ra lỗi khi tải lên ảnh. Hãy thử lại!');
-            return null
+            return null;
         } finally {
             setUploading(false);
             setProgress(0);
         }
-    }
+    };
 
-    const deleteByPath = async (path: string) => {
+    const deleteImage = async (
+        imageUrl: string,
+        allowNotification: boolean = false
+    ): Promise<boolean> => {
         try {
-            if (!path) return
-
-            await FirebaseStorageService.deleteImageByPath(path)
+            await FirebaseStorageService.deleteImage(imageUrl);
+            allowNotification && showSuccess('Xóa ảnh thành công!');
+            return true;
         } catch (error) {
-            throw error
+            allowNotification && showError('Đã xảy ra lỗi khi xóa ảnh. Hãy thử lại!');
+            return false;
         }
-    }
-
+    };
 
     return {
         uploading,
         progress,
         uploadImage,
-        deleteByPath
-    }
+        deleteImage,
+    };
 };

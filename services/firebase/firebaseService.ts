@@ -1,13 +1,16 @@
 import { deleteObject, firebaseStorage, getDownloadURL, ref, uploadBytes } from '@/config/firebase';
-import { v4 as uuidv4 } from 'uuid';
 
 export class FirebaseStorageService {
-    static async uploadImageToFirebase(file: File) {
+    static async uploadImageToFirebase(uri: string, folder: string = 'recipes'): Promise<string> {
         try {
-            const filename = `recipes/${uuidv4()}_${file.name}`;
-            const storageRef = ref(firebaseStorage, filename);
+            const filename = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
 
-            const snapshot = await uploadBytes(storageRef, file);
+            const response = await fetch(uri);
+            const blob = await response.blob();
+
+            const storageRef = ref(firebaseStorage, filename);
+            const snapshot = await uploadBytes(storageRef, blob);
+
             const downloadURL = await getDownloadURL(snapshot.ref);
             return downloadURL;
         } catch (error) {
@@ -16,61 +19,41 @@ export class FirebaseStorageService {
         }
     }
 
-    static async deleteImageFromFirebase(imageUrl: string) {
+    static async deleteImage(imageUrl: string): Promise<void> {
         try {
-            if (!imageUrl || !imageUrl.includes('firebasestorage.googleapis.com')) {
-                console.warn('Invalid image URL:', imageUrl);
-                return;
-            }
-
-            const url = new URL(imageUrl);
-            const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
-
-            if (!pathMatch) {
-                console.error('Could not extract from URL: ', imageUrl);
-                return;
-            }
-
-            const filePath = decodeURIComponent(pathMatch[1]);
-
-            const storageRef = ref(firebaseStorage, filePath);
-            await deleteObject(storageRef);
-            console.log('Deleted image from Firebase');
+            const imageRef = ref(firebaseStorage, imageUrl);
+            await deleteObject(imageRef);
         } catch (error) {
             console.error('Error deleting image from Firebase:', error);
             throw error;
         }
     }
 
-    static async uploadImageToFirebaseWithPath(file: File) {
+    static async getFileSize(uri: string): Promise<number> {
         try {
-            const filename = `recipes/${uuidv4()}_${file.name}`;
-            const storageRef = ref(firebaseStorage, filename);
-
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-
-            return {
-                url: downloadURL,
-                path: filename, // Trả về path để dễ dàng xóa sau này
-            };
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            return blob.size;
         } catch (error) {
-            console.error('Error uploading image:', error);
-            throw error;
+            console.error('Error getting file size:', error);
+            return 0;
         }
     }
 
-    static async deleteImageByPath(path: string) {
+    static async validateImage(uri: string): Promise<{ isValid: boolean; error?: string }> {
         try {
-            if (!path) return;
+            const size = await this.getFileSize(uri);
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            if (size > maxSize) {
+                return {
+                    isValid: false,
+                    error: 'Ảnh quá lớn. Vui lòng chọn ảnh có dung lượng nhỏ hơn 5MB.',
+                };
+            }
 
-            const storageRef = ref(firebaseStorage, path);
-            await deleteObject(storageRef);
-
-            console.log('Successfully deleted image at path:', path);
+            return { isValid: true };
         } catch (error) {
-            console.error('Error deleting image:', error);
-            throw error;
+            return { isValid: false, error: 'Đã xảy ra lỗi khi xác thực ảnh.' };
         }
     }
 }

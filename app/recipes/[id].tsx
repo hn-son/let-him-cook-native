@@ -1,6 +1,6 @@
-import CommentSection from '@/components/recipes/CommentSection';
-import IngredientsList from '@/components/recipes/IngredientsList';
-import StepsList from '@/components/recipes/StepsList';
+import CommentSection from '@/components/CommentSection';
+import IngredientsList from '@/components/IngredientsList';
+import StepsList from '@/components/StepsList';
 import { DIFFICULTY } from '@/constants/Difficulty';
 import { useRecipeDetails } from '@/hooks/useRecipes';
 import { useAuthStore } from '@/store/authStore';

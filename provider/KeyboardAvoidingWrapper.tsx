@@ -12,7 +12,7 @@ interface KeyboardAvoidingWrapperProps {
 const KeyboardAvoidingWrapper = ({
     children,
     style,
-    scrollEnabled = true,
+    scrollEnabled = false,
     keyboardVerticalOffset,
     behavior,
 }: KeyboardAvoidingWrapperProps) => {
