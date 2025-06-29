@@ -3,10 +3,16 @@ import { GET_RECIPE, GET_RECIPES } from '@/services/graphql/queries';
 import { useMutation, useQuery } from '@apollo/client';
 import { useNotification } from './useNotification';
 
-export function useRecipes(search?: string) {
+export interface ParamsProps {
+    search?: string
+    authorId?: string | null
+}
+
+export function useRecipes(params: ParamsProps) {
     const { data, loading, error, refetch } = useQuery(GET_RECIPES, {
         variables: {
-            search,
+            search: params.search,
+            authorId: params.authorId
         },
         fetchPolicy: 'cache-and-network',
     });

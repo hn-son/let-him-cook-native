@@ -1,5 +1,5 @@
 import RecipeCard from '@/components/RecipeCard';
-import { useRecipes } from '@/hooks/useRecipes';
+import { ParamsProps, useRecipes } from '@/hooks/useRecipes';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
@@ -7,9 +7,12 @@ import { ActivityIndicator, FAB, Searchbar, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RecipesScreen() {
-    const [searchQuery, setSearchQuery] = useState('');
+    const [params, setParams] = useState<ParamsProps>({
+        search: '',
+        authorId: null
+    });
     const [refetching, setRefetching] = useState(false);
-    const { recipes, loading, error, refetch } = useRecipes(searchQuery);
+    const { recipes, loading, error, refetch } = useRecipes(params);
     console.log('Recipes error: ', error);
     const router = useRouter();
 
@@ -36,8 +39,8 @@ export default function RecipesScreen() {
         <SafeAreaView style={styles.container} edges={['bottom']}>
             <Searchbar
                 placeholder="Tìm công thức..."
-                onChangeText={setSearchQuery}
-                value={searchQuery}
+                onChangeText={(text) => setParams(prev => ({ ...prev, search: text }))}
+                value={params.search || ''}
                 style={styles.searchBar}
             />
 
